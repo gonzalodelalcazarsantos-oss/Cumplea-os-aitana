@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sorpresa de cumple — Aitana 🎉</title>
+<style>
+  :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{margin:0;background:linear-gradient(180deg,#fff8e6,#f2efe9);color:#222;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .card{width:100%;max-width:820px;background:white;border-radius:12px;box-shadow:0 8px 30px rgba(2,8,23,0.12);padding:26px;}
+  h1{margin:0 0 8px;font-size:22px}
+  p.lead{margin:6px 0 18px;color:#555}
+  .puz{margin:14px 0;padding:16px;border-radius:8px;background:#fff9f0;border:1px dashed #efcf9e}
+  input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px}
+  button{background:#1f7a8c;color:white;padding:10px 14px;border-radius:8px;border:0;font-weight:700;cursor:pointer}
+  .letters{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px; justify-content:center;}
+  .lett{min-width:36px;height:36px;border-radius:6px;background:#efefef;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
+  .earned{background:#c8f3e0}
+  .final{margin-top:16px;padding:16px;background:#fff4f0;border-radius:8px;border:1px solid #ffd6c2;font-size:18px;font-weight:700;text-align:center}
+  .control{margin-top:10px;display:flex;gap:8px;}
+</style>
+</head>
+<body>
+<main class="card">
+<h1>Sorpresa de cumple — Aitana 🎉</h1>
+<p class="lead">Cada día se desbloquea un acertijo. Resuélvelo para ganar una letra. Al final descubrirás tu sorpresa de cumpleaños.</p>
+
+<div class="control">
+  <button onclick="prevDay()">⬅️ Día anterior (modo prueba)</button>
+  <button onclick="nextDay()">Día siguiente ➡️ (modo prueba)</button>
+</div>
+
+<div id="content"></div>
+
+<script>
+// ----------------------
+// Configuración
+// ----------------------
+const finalPhrase = "NOS VAMOS DE VIAJE A EGIPTO";
+const lettersPositions = finalPhrase.split("");
+
+// Fecha de inicio REAL
+const startDate = new Date("2026-01-09T00:00:00");
+
+// Lista de pistas + posiciones
+const puzzles = [
+  {q:"El juego comienza es tu primer acertijo...", a:["12"], letter:"N", pos:0},
+  {q:"Piensa que te piensa...", a:["A"], letter:"A", pos:5},
+  {q:"¿A dónde quieres ir?... ", a:["NOSE"], letter:"O", pos:1},
+  {q:"Conocías a muchas...", a:["VACA"], letter:"O", pos:7},
+  {q:"Grande y temida...", a:["BALLENA"], letter:"A", pos:15},
+  {q:"¿Qué planeta es el tercero?", a:["TIERRA"], letter:"O", pos:8},
+  {q:"Fruta del otoño...", a:["CASTAÑA"], letter:"A", pos:19},
+  {q:"Soy un pájaro y soy plana...", a:["AVELLANA"], letter:"S", pos:2},
+  {q:"Compañero del día...", a:["SOL"], letter:"S", pos:9},
+  {q:"Soy un elemento...", a:["AIRE"], letter:"E", pos:11},
+  {q:"Mes del amor...", a:["FEBRERO"], letter:"D", pos:10},
+  {q:"Con copa y sin ser árbol...", a:["SOMBRERO"], letter:"O", pos:14},
+  {q:"Juicio sin ser juzgadas...", a:["MUELAS"], letter:"M", pos:6},
+  {q:"Si dices mi nombre me rompes", a:["SILENCIO"], letter:"V", pos:4},
+  {q:"Sitio especial para ti...", a:["AEROPUERTO"], letter:"I", pos:14},
+  {q:"Cuando tú vas yo vengo...", a:["V"], letter:"V", pos:13},
+  {q:"Décima letra del abecedario", a:["J"], letter:"J", pos:16},
+  {q:"Todo el mundo lo tiene...", a:["NOMBRE"], letter:"T", pos:24},
+  {q:"Pelos y veraniego...", a:["COCO"], letter:"I", pos:22},
+  {q:"Repite esta letra...", a:["E"], letter:"E", pos:17},
+  {q:"Abuelito gordiflón...", a:["LEON"], letter:"G", pos:21},
+  {q:"Antes de la Q", a:["P"], letter:"P", pos:23},
+  {q:"Letra de ELEFANTE tres veces", a:["E"], letter:"E", pos:20}
+];
+
+// ----------------------
+// Estado del juego
+// ----------------------
+
+// Calcula cuántas pistas desbloqueadas hay según la fecha REAL
+function getUnlockedByDate(){
+  const now = new Date();
+  const diff = now - startDate;
+  if(diff < 0) return 0;
+  return Math.min(puzzles.length, Math.floor(diff / (1000*60*60*24)) + 1);
+}
+
+let realUnlocked = getUnlockedByDate(); 
+let currentIndex = Math.max(0, realUnlocked - 1);
+
+let answers = Array(finalPhrase.length).fill(null);
+
+// ----------------------
+// Render
+// ----------------------
+function render(){
+  const div = document.getElementById("content");
+  let unlocked = realUnlocked;
+
+  // Bloqueo real por fecha
+  if(currentIndex >= unlocked){
+    div.innerHTML = `
+      <h2>⏳ Aún no puedes ver esta pista</h2>
+      <p>Vuelve el <strong>${startDate.toLocaleDateString()}</strong> o espera al día correspondiente.</p>
+    `;
+    return;
+  }
+
+  // Mostrar frase parcial
+  const lettersDisplay = lettersPositions.map((l,i)=>
+    answers[i] ? answers[i] : (l===" " ? " " : "—")
+  );
+
+  const allDone = answers.every((v,i)=>v || lettersPositions[i]===" ");
+
+  if(allDone){
+    div.innerHTML = `<h2>🎉 ¡Has completado todas las pistas!</h2>
+    <p class="final">${finalPhrase}</p>`;
+    return;
+  }
+
+  const puzzle = puzzles[currentIndex];
+
+  div.innerHTML = `
+    <div class="puz">
+      <p><strong>Pista ${currentIndex+1}:</strong> ${puzzle.q}</p>
+      <input id="answer" type="text" placeholder="Tu respuesta..." />
+      <button onclick="check()">Comprobar</button>
+    </div>
+
+    <h3>Letras descubiertas:</h3>
+    <div class="letters">
+      ${lettersDisplay.map(l=>`<div class="lett ${l!=='—'?'earned':''}">${l}</div>`).join("")}
+    </div>
+  `;
+}
+
+// ----------------------
+// Comprobar respuesta
+// ----------------------
+function check(){
+  const inp = document.getElementById("answer").value.trim().toUpperCase();
+  const correct = puzzles[currentIndex].a.map(a=>a.toUpperCase());
+
+  if(correct.includes(inp)){
+    answers[puzzles[currentIndex].pos] = puzzles[currentIndex].letter;
+    render();
+  } else {
+    alert("Respuesta incorrecta ❤️");
+  }
+}
+
+// ----------------------
+// Modo prueba (NO afecta al día real)
+// ----------------------
+function nextDay(){ if(currentIndex<puzzles.length-1) currentIndex++; render(); }
+function prevDay(){ if(currentIndex>0) currentIndex--; render(); }
+
+// Inicializar
+render();
+</script>
+</main>
+</body>
+</html>
+
