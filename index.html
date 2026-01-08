@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Sorpresa de cumple — Aitana 🎉</title>
+
 <style>
   :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
   body{margin:0;background:linear-gradient(180deg,#fff8e6,#f2efe9);color:#222;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
@@ -13,133 +14,115 @@
   .puz{margin:14px 0;padding:16px;border-radius:8px;background:#fff9f0;border:1px dashed #efcf9e}
   input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px}
   button{background:#1f7a8c;color:white;padding:10px 14px;border-radius:8px;border:0;font-weight:700;cursor:pointer}
-  .letters{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px; justify-content:center;}
+  .letters{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;justify-content:center;}
   .lett{min-width:36px;height:36px;border-radius:6px;background:#efefef;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
   .earned{background:#c8f3e0}
   .final{margin-top:16px;padding:16px;background:#fff4f0;border-radius:8px;border:1px solid #ffd6c2;font-size:18px;font-weight:700;text-align:center}
-  .control{margin-top:10px;display:flex;gap:8px;}
+  .control{margin-top:10px;display:flex;gap:8px;justify-content:center;}
 </style>
 </head>
+
 <body>
 <main class="card">
 <h1>Sorpresa de cumple — Aitana 🎉</h1>
-<p class="lead">Cada día se desbloquea un acertijo. Resuélvelo para ganar una letra. Al final descubrirás tu sorpresa de cumpleaños.</p>
+<p class="lead">
+Resuelve los acertijos para descubrir poco a poco tu sorpresa.
+</p>
 
 <div class="control">
-  <button onclick="prevDay()">⬅️ Día anterior (modo prueba)</button>
-  <button onclick="nextDay()">Día siguiente ➡️ (modo prueba)</button>
+  <button onclick="prev()">⬅️ Anterior</button>
+  <button onclick="next()">Siguiente ➡️</button>
 </div>
 
 <div id="content"></div>
 
 <script>
 // ----------------------
-// Configuración
+// FRASE FINAL
 // ----------------------
 const finalPhrase = "NOS VAMOS DE VIAJE A EGIPTO";
-const lettersPositions = finalPhrase.split("");
+const phraseArray = finalPhrase.split("");
 
-// Fecha de inicio REAL
-const startDate = new Date("2026-01-09T00:00:00");
-
-// Lista de pistas + posiciones
+// ----------------------
+// PISTAS (UNA letra → UNA posición)
+// ----------------------
 const puzzles = [
-  {q:"El juego comienza es tu primer acertijo...", a:["12"], letter:"N", pos:0},
-  {q:"Piensa que te piensa...", a:["A"], letter:"A", pos:5},
-  {q:"¿A dónde quieres ir?... ", a:["NOSE"], letter:"O", pos:1},
-  {q:"Conocías a muchas...", a:["VACA"], letter:"O", pos:7},
-  {q:"Grande y temida...", a:["BALLENA"], letter:"A", pos:15},
-  {q:"¿Qué planeta es el tercero?", a:["TIERRA"], letter:"O", pos:8},
-  {q:"Fruta del otoño...", a:["CASTAÑA"], letter:"A", pos:19},
-  {q:"Soy un pájaro y soy plana...", a:["AVELLANA"], letter:"S", pos:2},
-  {q:"Compañero del día...", a:["SOL"], letter:"S", pos:9},
-  {q:"Soy un elemento...", a:["AIRE"], letter:"E", pos:11},
-  {q:"Mes del amor...", a:["FEBRERO"], letter:"D", pos:10},
-  {q:"Con copa y sin ser árbol...", a:["SOMBRERO"], letter:"O", pos:14},
-  {q:"Juicio sin ser juzgadas...", a:["MUELAS"], letter:"M", pos:6},
+ {q:"El juego comienza es tu primer acertijo a esta hora comienzan las mejores cosas peeero también se acaban", a:["12"], letter:"N", pos:0},
+  {q:"Piensa que te piensa siempre consigues tu respuesta y por más cuestiones que te hagas y respuestas que consigues siempre repites lo mismo", a:["A"], letter:"A", pos:5},
+  {q:"¿A dónde quieres ir?, ¿qué quieres comer?,¿qué quieres hacer? siempre tienen una respuesta incorrecta", a:["NOSE"], letter:"O", pos:1},
+  {q:"Conocías a muchas y desde que van en lo alto de los coches la gente las confunde", a:["VACA"], letter:"O", pos:7},
+  {q:"Grande y temida pero nose por que si nunca tiene hambre", a:["BALLENA"], letter:"A", pos:15},
+  {q:"¿Qué planeta es el tercero del sistema solar? esta es facilitaaa no vale buscarla", a:["TIERRA"], letter:"O", pos:8},
+  {q:"¿Qué fruta es típica del otoño y empieza por C?", a:["CASTAÑA"], letter:"A", pos:19},
+  {q:"Soy un pájaro y soy plana y si me juntas soy", a:["AVELLANA"], letter:"S", pos:2},
+  {q:"¿Qué compañero tienes durante el día, que te aguanta más en verano que en invierno", a:["SOL"], letter:"S", pos:9},
+  {q:"Soy un elemento, me llevo las cosas si te descuidas y allí por el sur me nombran mucho para que la gente se vaya", a:["AIRE"], letter:"E", pos:11},
+  {q:"¿Cuál es el mes del Amor?", a:["FEBRERO"], letter:"D", pos:10},
+  {q:"Con copa y sin ser árbol, con alas sin ser pájaro y siempre descanso en lo más alto", a:["SOMBRERO"], letter:"O", pos:14},
+  {q:"¿Quiénes tienen un juicio sin ser juzgadas?", a:["MUELAS"], letter:"M", pos:6},
   {q:"Si dices mi nombre me rompes", a:["SILENCIO"], letter:"V", pos:4},
-  {q:"Sitio especial para ti...", a:["AEROPUERTO"], letter:"I", pos:14},
-  {q:"Cuando tú vas yo vengo...", a:["V"], letter:"V", pos:13},
-  {q:"Décima letra del abecedario", a:["J"], letter:"J", pos:16},
-  {q:"Todo el mundo lo tiene...", a:["NOMBRE"], letter:"T", pos:24},
-  {q:"Pelos y veraniego...", a:["COCO"], letter:"I", pos:22},
-  {q:"Repite esta letra...", a:["E"], letter:"E", pos:17},
-  {q:"Abuelito gordiflón...", a:["LEON"], letter:"G", pos:21},
-  {q:"Antes de la Q", a:["P"], letter:"P", pos:23},
-  {q:"Letra de ELEFANTE tres veces", a:["E"], letter:"E", pos:20}
+  {q:"Te vas y vuelves, no sabes diferenciar a dónde tienes que ir, pero aun así es un sitio muy especial para ti", a:["AEROPUERTO"], letter:"I", pos:14},
+  {q:"Cuando tú vas yo vengo y aunque llegamos a sitios diferentes los dos empezamos en el mismo", a:["V"], letter:"V", pos:13},
+  {q:"¿Qué letra es la décima del abecedario?", a:["J"], letter:"J", pos:16},
+  {q:"Todo el mundo lo tiene y mientras que no a todos les gusta hay a otros que casi se les gasta", a:["NOMBRE"], letter:"T", pos:24},
+  {q:"Aunque mi nombre a los niños asuste, muy rico estoy, soy bastante veraniego y lleno de pelos estoy", a:["COCO"], letter:"I", pos:22},
+  {q:"Vuelves otra vez al piensa que te piensa, y por más que piensas solo repites esta letra", a:["E"], letter:"E", pos:17},
+  {q:"Hay un Abuelito gordinflón que a muchos niños hace feliz pero se mete por las chimeneas al revés porque no le gusta su nombre ¿Cómo se quiere llamar?", a:["LEON"], letter:"G", pos:21},
+  {q:"¿Qué consonante va antes de la Q?", a:["P"], letter:"P", pos:23},
+  {q:"¿Qué letra está en la palabra ELEFANTE tres veces?", a:["E"], letter:"E", pos:20} 
 ];
 
 // ----------------------
-// Estado del juego
+// ESTADO
 // ----------------------
-
-// Calcula cuántas pistas desbloqueadas hay según la fecha REAL
-function getUnlockedByDate(){
-  const now = new Date();
-  const diff = now - startDate;
-  if(diff < 0) return 0;
-  return Math.min(puzzles.length, Math.floor(diff / (1000*60*60*24)) + 1);
-}
-
-let realUnlocked = getUnlockedByDate(); 
-let currentIndex = Math.max(0, realUnlocked - 1);
-
-let answers = Array(finalPhrase.length).fill(null);
+let current = 0;
+let discovered = Array(phraseArray.length).fill(null);
 
 // ----------------------
-// Render
+// RENDER
 // ----------------------
 function render(){
   const div = document.getElementById("content");
-  let unlocked = realUnlocked;
 
-  // Bloqueo real por fecha
-  if(currentIndex >= unlocked){
+  const display = phraseArray.map((l,i)=>{
+    if(l===" ") return " ";
+    return discovered[i] ?? "—";
+  });
+
+  const finished = display.every((c,i)=>c!=="—" || phraseArray[i]===" ");
+
+  if(finished){
     div.innerHTML = `
-      <h2>⏳ Aún no puedes ver esta pista</h2>
-      <p>Vuelve el <strong>${startDate.toLocaleDateString()}</strong> o espera al día correspondiente.</p>
+      <h2>🎉 ¡Has completado todas las pistas!</h2>
+      <p class="final">${finalPhrase}</p>
     `;
     return;
   }
 
-  // Mostrar frase parcial
-  const lettersDisplay = lettersPositions.map((l,i)=>
-    answers[i] ? answers[i] : (l===" " ? " " : "—")
-  );
-
-  const allDone = answers.every((v,i)=>v || lettersPositions[i]===" ");
-
-  if(allDone){
-    div.innerHTML = `<h2>🎉 ¡Has completado todas las pistas!</h2>
-    <p class="final">${finalPhrase}</p>`;
-    return;
-  }
-
-  const puzzle = puzzles[currentIndex];
-
   div.innerHTML = `
     <div class="puz">
-      <p><strong>Pista ${currentIndex+1}:</strong> ${puzzle.q}</p>
+      <p><strong>Pista ${current+1}:</strong> ${puzzles[current].q}</p>
       <input id="answer" type="text" placeholder="Tu respuesta..." />
       <button onclick="check()">Comprobar</button>
     </div>
 
-    <h3>Letras descubiertas:</h3>
+    <h3>Frase:</h3>
     <div class="letters">
-      ${lettersDisplay.map(l=>`<div class="lett ${l!=='—'?'earned':''}">${l}</div>`).join("")}
+      ${display.map(l=>`<div class="lett ${l!=='—'?'earned':''}">${l}</div>`).join("")}
     </div>
   `;
 }
 
 // ----------------------
-// Comprobar respuesta
+// CHECK
 // ----------------------
 function check(){
   const inp = document.getElementById("answer").value.trim().toUpperCase();
-  const correct = puzzles[currentIndex].a.map(a=>a.toUpperCase());
+  const valid = puzzles[current].a.map(a=>a.toUpperCase());
 
-  if(correct.includes(inp)){
-    answers[puzzles[currentIndex].pos] = puzzles[currentIndex].letter;
+  if(valid.includes(inp)){
+    const {pos, letter} = puzzles[current];
+    discovered[pos] = letter;
     render();
   } else {
     alert("Respuesta incorrecta ❤️");
@@ -147,12 +130,12 @@ function check(){
 }
 
 // ----------------------
-// Modo prueba (NO afecta al día real)
+// NAVEGACIÓN
 // ----------------------
-function nextDay(){ if(currentIndex<puzzles.length-1) currentIndex++; render(); }
-function prevDay(){ if(currentIndex>0) currentIndex--; render(); }
+function next(){ if(current < puzzles.length-1) current++; render(); }
+function prev(){ if(current > 0) current--; render(); }
 
-// Inicializar
+// INIT
 render();
 </script>
 </main>
